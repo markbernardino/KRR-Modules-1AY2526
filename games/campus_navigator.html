@@ -1,0 +1,61 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Campus Navigator</title>
+<style>
+body{font-family:Arial;background:#f6f9fc;margin:20px}
+#game{max-width:760px;margin:0 auto;background:#fff;padding:16px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+.room{display:inline-block;width:90px;height:90px;border:2px solid #ddd;border-radius:6px;margin:6px;position:relative;text-align:center;line-height:90px;font-weight:700}
+.controls{margin-top:12px}
+</style></head><body>
+<div id="game">
+<h2>Campus Navigator (Spatial Reasoning)</h2>
+<p>Rooms: A,B,C,D,E,F — move between adjacent rooms and test reachability.</p>
+<div id="rooms"></div>
+<div class="controls">
+Move from <select id="from"></select> to <select id="to"></select>
+<button id="moveBtn">Move</button>
+<button id="reachBtn">Check Reachability</button>
+<button id="neighborsBtn">Neighbors</button>
+<div id="output" style="margin-top:8px"></div>
+</div>
+</div>
+<script>
+const graph = {A:['B','D'],B:['A','C'],C:['B','F'],D:['A','E'],E:['D','F'],F:['C','E']};
+const roomsDiv = document.getElementById('rooms');
+const rooms=['A','B','C','D','E','F'];
+for(const r of rooms){
+  const el=document.createElement('div'); el.className='room'; el.id='room'+r; el.innerText=r; roomsDiv.appendChild(el);
+}
+const fromSel=document.getElementById('from'), toSel=document.getElementById('to');
+for(const r of rooms){ fromSel.appendChild(new Option(r,r)); toSel.appendChild(new Option(r,r)); }
+let current='A';
+document.getElementById('roomA').style.background='#e8f7ff';
+function render(){
+  for(const r of rooms){
+    document.getElementById('room'+r).style.background=(r===current?'#e8f7ff':'#fff');
+  }
+}
+document.getElementById('moveBtn').onclick = ()=>{
+  const t=toSel.value;
+  if(graph[current] && graph[current].includes(t)){ current=t; render(); document.getElementById('output').innerText='Moved to '+t; }
+  else document.getElementById('output').innerText='Not adjacent: cannot move directly.';
+}
+function reachable(start,target){
+  const visited=new Set(); const stack=[start];
+  while(stack.length){
+    const n=stack.pop();
+    if(n===target) return true;
+    if(visited.has(n)) continue;
+    visited.add(n);
+    for(const nb of (graph[n]||[])) if(!visited.has(nb)) stack.push(nb);
+  }
+  return false;
+}
+document.getElementById('reachBtn').onclick = ()=> {
+  const s=fromSel.value, t=toSel.value;
+  document.getElementById('output').innerText = 'Reachable from '+s+' to '+t+': '+reachable(s,t);
+};
+document.getElementById('neighborsBtn').onclick = ()=>{
+  const n=fromSel.value; document.getElementById('output').innerText = 'Neighbors of '+n+': '+ (graph[n]||[]).join(', ');
+};
+render();
+</script></body></html>

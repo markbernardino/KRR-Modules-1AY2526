@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Medical Expert</title>
+<style>body{font-family:Arial;margin:20px;background:#f4f7fb}#game{max-width:760px;margin:0 auto;background:#fff;padding:16px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}button,input{padding:8px;border-radius:6px;margin:4px}</style>
+</head><body><div id="game"><h2>Medical Expert System</h2>
+<p>Add symptoms and click Diagnose.</p>
+<input id="symp" placeholder="symptom (single word)"><button id="add">Add Symptom</button>
+<button id="diag">Diagnose</button><button id="clear">Clear</button>
+<div id="symptoms" style="margin-top:8px"></div>
+<div id="out" style="margin-top:8px"></div></div>
+<script>
+const symptoms=[];
+function render(){ document.getElementById('symptoms').innerText='Symptoms: '+symptoms.join(', '); }
+document.getElementById('add').onclick = ()=>{
+  const s=document.getElementById('symp').value.trim().toLowerCase(); if(!s) return;
+  symptoms.push(s); render(); document.getElementById('symp').value='';
+};
+document.getElementById('clear').onclick = ()=>{ symptoms.length=0; render(); document.getElementById('out').innerText=''; };
+document.getElementById('diag').onclick = ()=>{
+  const out=[];
+  const has=(x)=> symptoms.includes(x);
+  if(has('fever') && has('cough')) out.push('Possible: Flu');
+  if(has('fever') && has('rash')) out.push('Possible: Measles');
+  if(has('headache') && has('stiffneck')) out.push('Possible: Meningitis');
+  if(has('sneeze') && has('runny_nose')) out.push('Possible: Common Cold');
+  if(has('itch') && has('rash')) out.push('Possible: Allergy');
+  document.getElementById('out').innerText = out.length? out.join('\n') : 'No diagnosis inferred.';
+};
+render();
+</script></body></html>

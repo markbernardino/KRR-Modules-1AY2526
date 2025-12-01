@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><title>AI Detective</title>
+<style>body{font-family:Arial;margin:20px;background:#f8fbff}#game{max-width:760px;margin:0 auto;background:#fff;padding:16px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}button,input{padding:8px;border-radius:6px;margin:4px}</style>
+</head><body><div id="game"><h2>AI Detective (Rule Chaining)</h2>
+<p>Add facts, then use Forward or Backward chaining.</p>
+<input id="fact" placeholder="fact (single word)"><button id="add">Add Fact</button>
+<button id="forward">Forward Chain</button><button id="back">Backward Chain</button><button id="show">Show Facts</button>
+<div id="facts" style="margin-top:8px"></div>
+<div id="out" style="margin-top:8px"></div></div>
+<script>
+const facts=new Set();
+const rules=[{conds:['at_scene','has_motive'],concl:'suspect_possible'},{conds:['has_alibi'],concl:'suspect_cleared'},{conds:['suspect_possible','no_alibi'],concl:'arrest_warrant'}];
+function renderFacts(){ document.getElementById('facts').innerText='Facts: '+Array.from(facts).join(', '); }
+document.getElementById('add').onclick = ()=>{ const f=document.getElementById('fact').value.trim().toLowerCase(); if(!f) return; facts.add(f); document.getElementById('fact').value=''; renderFacts(); };
+document.getElementById('forward').onclick = ()=>{
+  let added=true; const derived=[];
+  while(added){
+    added=false;
+    for(const r of rules){
+      if(r.conds.every(c=>facts.has(c)) && !facts.has(r.concl)){ facts.add(r.concl); derived.push(r.concl); added=true; }
+    }
+  }
+  document.getElementById('out').innerText = 'Derived: '+derived.join(', ');
+  renderFacts();
+};
+function backward(goal, visited=new Set()){
+  if(facts.has(goal)) return true;
+  if(visited.has(goal)) return false;
+  visited.add(goal);
+  for(const r of rules) if(r.concl===goal){
+    const ok = r.conds.every(c => facts.has(c) || backward(c, visited));
+    if(ok) return true;
+  }
+  return false;
+}
+document.getElementById('back').onclick = ()=>{
+  const g = prompt('Goal to prove?'); if(!g) return;
+  const res = backward(g.trim().toLowerCase());
+  document.getElementById('out').innerText = g + ' provable? ' + res;
+};
+document.getElementById('show').onclick = renderFacts;
+renderFacts();
+</script></body></html>

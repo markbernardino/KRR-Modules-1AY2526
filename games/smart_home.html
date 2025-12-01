@@ -1,0 +1,62 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Smart Home Simulator</title>
+<style>
+body{font-family:Arial;margin:20px;background:#f4f7fb}
+#game{max-width:800px;margin:0 auto;background:#fff;padding:16px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+button,input,select{padding:8px;border-radius:6px;margin:4px}
+#events{height:160px;overflow:auto;border:1px solid #eee;padding:8px;background:#fafafa}
+</style>
+</head><body>
+<div id="game">
+<h2>Smart Home Simulator (Event Calculus)</h2>
+<p>Add timed events and query device state at any hour (0-23).</p>
+<div>
+Device: <input id="device" value="light"/> 
+Time: <input id="timeinp" type="number" min="0" max="23" value="9"/>
+<button id="onbtn">Turn ON</button>
+<button id="offbtn">Turn OFF</button>
+<button id="listbtn">List Events</button>
+<button id="querybtn">Is ON at...</button>
+<input id="querytime" type="number" min="0" max="23" value="12"/>
+</div>
+<div style="margin-top:8px">
+<div id="events"></div>
+</div>
+<div id="status" style="margin-top:8px"></div>
+</div>
+<script>
+const events = []; // {time, type, device}
+function addEvent(type, device, t){
+  t = parseInt(t);
+  if(isNaN(t) || t<0 || t>23){ alert('Time 0-23'); return; }
+  events.push({time:t,type:type,device:device});
+  events.sort((a,b)=>a.time-b.time);
+  renderEvents();
+}
+function renderEvents(){
+  const d = document.getElementById('events');
+  d.innerHTML = events.map(e=> e.time+': '+e.type+'('+e.device+')').reverse().join('<br>');
+}
+function holdsAt(device, qtime){
+  qtime = parseInt(qtime);
+  let state=false;
+  for(const e of events){
+    if(e.time>qtime) break;
+    if(e.device===device){
+      if(e.type==='on') state=true;
+      else if(e.type==='off') state=false;
+    }
+  }
+  return state;
+}
+document.getElementById('onbtn').onclick = ()=> addEvent('on', document.getElementById('device').value, document.getElementById('timeinp').value);
+document.getElementById('offbtn').onclick = ()=> addEvent('off', document.getElementById('device').value, document.getElementById('timeinp').value);
+document.getElementById('listbtn').onclick = renderEvents;
+document.getElementById('querybtn').onclick = ()=>{
+  const dev=document.getElementById('device').value;
+  const t=document.getElementById('querytime').value;
+  const s = holdsAt(dev,t);
+  document.getElementById('status').innerText = dev + ' is ' + (s?'ON':'OFF') + ' at ' + t;
+};
+renderEvents();
+</script></body></html>

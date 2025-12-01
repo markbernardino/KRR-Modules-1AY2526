@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Robot Delivery Simulator</title>
+<style>
+  body{font-family: Arial,Helvetica,sans-serif; margin:20px; background:#f5f7fb; color:#111}
+  #game{width:720px; margin:0 auto; background:white; border-radius:8px; padding:16px; box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+  .rooms{display:flex; gap:8px; justify-content:space-between; margin-bottom:12px}
+  .room{flex:1; height:160px; border:2px solid #ddd; border-radius:6px; position:relative; display:flex; align-items:center; justify-content:center; background:#fcfcff}
+  .label{position:absolute; top:6px; left:8px; font-weight:700; color:#666}
+  .box{width:46px; height:46px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; font-weight:700}
+  .red{background:#e74c3c}
+  .blue{background:#3498db'}
+  #controls{display:flex; gap:8px; margin-top:12px; align-items:center; flex-wrap:wrap}
+  select,input[type=button],button{padding:8px 10px; border-radius:6px; border:1px solid #ccd; background:#fff; cursor:pointer}
+  #log{height:120px; overflow:auto; border:1px solid #eee; padding:8px; margin-top:12px; background:#fafafa}
+  .robot{position:absolute; bottom:8px; right:8px; width:54px; height:54px; border-radius:8px; background:#2ecc71; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700}
+</style>
+</head>
+<body>
+<div id="game">
+  <h2>Robot Delivery Simulator</h2>
+  <p>Goal: Move the <strong>red</strong> box to Room C.</p>
+  <div class="rooms">
+    <div class="room" id="roomA"><div class="label">A</div></div>
+    <div class="room" id="roomB"><div class="label">B</div></div>
+    <div class="room" id="roomC"><div class="label">C</div></div>
+  </div>
+  <div id="controls">
+    <label>Move to:
+      <select id="moveTo"><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
+    </label>
+    <button id="moveBtn">Move</button>
+    <button id="pickBtn">Pick</button>
+    <button id="dropBtn">Drop</button>
+    <button id="statusBtn">Status</button>
+    <div style="margin-left:auto">Steps: <span id="steps">0</span></div>
+  </div>
+  <div id="log"></div>
+</div>
+<script>
+// Simple world model
+const state = {
+  robot_at: 'A',
+  boxes: { red: 'A', blue: 'B' },
+  holding: null,
+  steps: 0
+};
+const coords = { A: 'roomA', B: 'roomB', C: 'roomC' };
+
+function el(id){ return document.getElementById(id); }
+function log(msg){ const d=el('log'); d.innerHTML = (new Date()).toLocaleTimeString() + ' — ' + msg + '<br>' + d.innerHTML; }
+
+function render(){
+  // clear rooms
+  ['roomA','roomB','roomC'].forEach(r => el(r).querySelectorAll('.box, .robot').forEach(n=>n.remove()));
+  // draw boxes
+  const red = document.createElement('div'); red.className='box red'; red.textContent='R';
+  const blue = document.createElement('div'); blue.className='box blue'; blue.textContent='B';
+  if(state.boxes.red === 'with_robot'){
+    // attach to robot; will be shown inside robot
+  } else {
+    el(coords[state.boxes.red]).appendChild(red.cloneNode(true));
+  }
+  if(state.boxes.blue === 'with_robot'){
+  } else {
+    el(coords[state.boxes.blue]).appendChild(blue.cloneNode(true));
+  }
+  // draw robot
+  const r = document.createElement('div'); r.className='robot'; r.textContent='ROBOT';
+  el(coords[state.robot_at]).appendChild(r);
+  // if holding, draw box inside robot
+  if(state.holding==='red'){
+    const rb = document.createElement('div'); rb.className='box red'; rb.style.position='absolute'; rb.style.top='6px'; rb.style.left='6px'; rb.textContent='R';
+    r.appendChild(rb);
+  } else if(state.holding==='blue'){
+    const bb = document.createElement('div'); bb.className='box blue'; bb.style.position='absolute'; bb.style.top='6px'; bb.style.left='6px'; bb.textContent='B';
+    r.appendChild(bb);
+  }
+  el('steps').textContent = state.steps;
+}
+
+function doMove(target){
+  if(state.robot_at === target){ log('Robot already at ' + target); return; }
+  state.robot_at = target;
+  state.steps++;
+  log('Moved robot to ' + target);
+  checkGoal();
+  render();
+}
+
+function doPick(){
+  // pick box at same room if not holding anything
+  if(state.holding){ log('Cannot pick: already holding ' + state.holding); return; }
+  for(const [b,loc] of Object.entries(state.boxes)){
+    if(loc === state.robot_at){
+      state.boxes[b] = 'with_robot';
+      state.holding = b;
+      state.steps++;
+      log('Picked ' + b + ' box');
+      render();
+      return;
+    }
+  }
+  log('No box to pick at this room');
+}
+
+function doDrop(){
+  if(!state.holding){ log('Not holding any box'); return; }
+  state.boxes[state.holding] = state.robot_at;
+  log('Dropped ' + state.holding + ' at ' + state.robot_at);
+  state.holding = null;
+  state.steps++;
+  checkGoal();
+  render();
+}
+
+function checkGoal(){
+  if(state.boxes.red === 'C'){ log('🎉 Goal achieved: red box at C in ' + state.steps + ' steps'); }
+}
+
+// bind controls
+el('moveBtn').addEventListener('click', ()=> doMove(el('moveTo').value));
+el('pickBtn').addEventListener('click', doPick);
+el('dropBtn').addEventListener('click', doDrop);
+el('statusBtn').addEventListener('click', ()=> { log(JSON.stringify(state)); render(); });
+
+// initial render
+render();
+log('World initialized. Robot at A. Red at A. Blue at B.');
+</script>
+</body>
+</html>

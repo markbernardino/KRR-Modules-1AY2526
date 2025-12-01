@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Semantic Network</title>
+<style>body{font-family:Arial;margin:20px;background:#fbfcff}#game{max-width:880px;margin:0 auto;background:#fff;padding:16px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}input,button{padding:8px;border-radius:6px;margin:4px}</style>
+</head><body><div id="game"><h2>Semantic Network & Ontology Demo</h2>
+<p>Add classes, parents and properties. Query inherited properties.</p>
+<div><input id="class" placeholder="Class name"><input id="parent" placeholder="Parent (or leave blank)"><button id="addclass">Add Class</button></div>
+<div><input id="propclass" placeholder="Class for property"><input id="propname" placeholder="Property name"><input id="propval" placeholder="Value"><button id="addprop">Add Property</button></div>
+<div style="margin-top:8px"><input id="qclass" placeholder="Query class"><input id="qprop" placeholder="Property"><button id="query">Query</button></div>
+<div id="out" style="margin-top:8px"></div>
+<div id="list" style="margin-top:8px"></div>
+</div>
+<script>
+const classes = {}; // name -> parent or null
+const props = {}; // class -> {prop:val}
+function addClass(name,parent){ classes[name]= parent||null; if(!props[name]) props[name]={}; renderList(); }
+function addProp(cls,p,v){ if(!props[cls]) props[cls]={}; props[cls][p]=v; renderList(); }
+function queryProp(cls,prop){
+  let cur=cls;
+  while(cur){
+    if(props[cur] && props[cur].hasOwnProperty(prop)) return {val:props[cur][prop],from:cur};
+    cur = classes[cur];
+  }
+  return null;
+}
+document.getElementById('addclass').onclick = ()=>{
+  const n=document.getElementById('class').value.trim(); const p=document.getElementById('parent').value.trim();
+  if(!n){ alert('Enter class name'); return; }
+  addClass(n, p||null);
+  document.getElementById('class').value=''; document.getElementById('parent').value='';
+};
+document.getElementById('addprop').onclick = ()=>{
+  const c=document.getElementById('propclass').value.trim(), p=document.getElementById('propname').value.trim(), v=document.getElementById('propval').value.trim();
+  if(!c||!p){ alert('Class and property required'); return; }
+  addProp(c,p,v); document.getElementById('propclass').value=''; document.getElementById('propname').value=''; document.getElementById('propval').value='';
+};
+document.getElementById('query').onclick = ()=>{
+  const c=document.getElementById('qclass').value.trim(), p=document.getElementById('qprop').value.trim();
+  if(!c||!p) return;
+  const r=queryProp(c,p);
+  document.getElementById('out').innerText = r? (c+'.'+p+' = '+r.val+' (from '+r.from+')') : 'Property not found';
+};
+function renderList(){
+  let s='Classes:\n';
+  for(const k in classes) s+=k+' parent-> '+(classes[k]||'none')+'\n';
+  s+='\nProperties:\n';
+  for(const k in props) s+=k+': '+JSON.stringify(props[k])+'\n';
+  document.getElementById('list').innerText = s;
+}
+// sample
+addClass('Bird', null); addProp('Bird','canFly','true'); addClass('Penguin','Bird'); addProp('Penguin','canFly','false');
+</script></body></html>
