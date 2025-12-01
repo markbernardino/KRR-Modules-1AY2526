@@ -77,4 +77,4 @@ For educational and institutional use under LSPU CCS.
 Laguna State Polytechnic University  
 College of Computer Studies  
 
-Assisted by **ChatGPT**
+
