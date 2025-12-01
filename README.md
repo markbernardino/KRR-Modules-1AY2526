@@ -1,6 +1,5 @@
 # CSST101 Interactive Games Hub  
-Advanced Knowledge Representation & Reasoning  
-Bootstrap Web Version (AY 2025–2026)
+Advanced Knowledge Representation & Reasoning Web Version (AY 2025–2026)
 
 This repository hosts **7 interactive, browser-based educational games** designed for the course  
 **CSST101 – Advanced Knowledge Representation and Reasoning**.
